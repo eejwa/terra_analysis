@@ -26,7 +26,7 @@ vel_grad_bins = np.arange(0, 0.0101, 0.0001)
 print(vel_grad_bins)
 
 grad_dist_rad = np.zeros((len(radii), vel_grad_bins.shape[0] -1))
-gradients_grid = np.zeros((len(radii), nlats, nlons))
+gradients_grid = np.zeros((len(radii), int(nlats), int(nlons)))
 
 
 for i,depth in enumerate(depths):
@@ -44,12 +44,13 @@ for i,depth in enumerate(depths):
     vss = vss.reshape((int(nlats),int(nlons)))
     vss_comp = vss_comp.reshape((int(nlats),int(nlons)))
 
-    # fig = plt.figure(figsize=(6,8))
-    # ax = fig.add_subplot(211, projection=ccrs.PlateCarree())
-    # v = ax.contourf(lons_unique, lats_unique, vss_comp, 50, cmap='seismic_r',
-    #             vmin = -1*max_vs, vmax=max_vs)
-    # ax.coastlines()
-    # plt.colorbar(v, ax=ax)
+    fig = plt.figure(figsize=(10,8))
+    ax = fig.add_subplot(211, projection=ccrs.PlateCarree())
+    v = ax.contourf(lons_unique, lats_unique, vss_comp, 50, cmap='seismic_r',
+                vmin = -1*max_vs, vmax=max_vs)
+    ax.coastlines()
+    plt.colorbar(v, ax=ax, label='V$_{S}$ (%)')
+    ax.set_title(f'Depth {depth} km')
 
 
     grad_lat, grad_lon = np.gradient(vss, 0.5)
@@ -61,11 +62,13 @@ for i,depth in enumerate(depths):
 
 
     # fig = plt.figure(figsize=(8,8))
-    # ax2 = fig.add_subplot(212, projection=ccrs.PlateCarree())
-    # g = ax2.contourf(lons_unique, lats_unique, grad_mag, 20)
-    # ax2.coastlines()
-    # plt.colorbar(g, ax=ax2)
+    ax2 = fig.add_subplot(212, projection=ccrs.PlateCarree())
+    g = ax2.contourf(lons_unique, lats_unique, grad_mag, 20)
+    ax2.coastlines()
+    plt.colorbar(g, ax=ax2, label='V$_{S}$ gradient (kms$^{-1}$km$^{-1}$)')
+    plt.savefig(f'seisvel_grads_{depth}.pdf')
     # plt.show()
+    plt.close()
     
 #     grad_dist_rad[i] = binned_grads
 
@@ -75,7 +78,8 @@ gradients_grid = np.flip(gradients_grid, axis=0)
 
 print('max gradient:', gradients_grid.max())
 print('max gradient lower mantle:', gradients_grid[:10,:,:].max())
-print('proportion of gradient in reasonable range:', gradients_grid[:10,:,:].max())
+print('max gradient upper mantle:', gradients_grid[-10:,:,:].max())
+# print('proportion of gradient in reasonable range:', gradients_grid[:10,:,:].max())
 
 
 # plt.pcolormesh(grad_dist_rad, bin_edges, radii)
