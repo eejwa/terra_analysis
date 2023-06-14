@@ -2,10 +2,20 @@
 
 from terratools import terra_model as tm
 from terratools import geographic
+from terratools import convert_files as c
 import numpy as np
 import time 
-m = tm.load_model_from_pickle('seis_model.pkl')
+import glob
 
+# m = tm.load_model_from_pickle('seis_model.pkl')
+
+try:
+    m = tm.read_netcdf(glob.glob('nc*seis'))
+except:
+    exit()
+
+
+m.write_pickle('seis_model.pkl')
 radii = m.get_radii()
 depths = 6370 - radii
 
