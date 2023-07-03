@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from terratools import terra_model as tm
 from terratools import geographic as g
 import matplotlib.pyplot as plt
+import glob
 plt.style.use('seaborn')
 
 # clustering algorithms
@@ -16,7 +17,9 @@ EPSILON =  100 # km
 MINPTS = 5
 
 print('reading in model')
-m = tm.load_model_from_pickle('flow_temp_model.pkl')
+# m = tm.load_model_from_pickle('flow_temp_model.pkl')
+m = tm.read_netcdf(glob.glob('nc*'))
+
 lons_model, lats_model = m.get_lateral_points()
 radii = m.get_radii()
 
