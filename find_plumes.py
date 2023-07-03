@@ -11,6 +11,7 @@ plt.style.use('seaborn')
 # clustering algorithms
 from sklearn.cluster import dbscan
 
+# clustering parameters 
 EPSILON =  100 # km
 MINPTS = 5
 
@@ -39,7 +40,6 @@ for i,rad in enumerate(radii):
     xyz_points[i] = location
     lat_lon_points[i] = lat_lon_rad_model
 
-print(xyz_points.shape)
 
 print('calculating lateral flow magnitude')
 u_lat = u_geog[:,:,0]
@@ -47,29 +47,24 @@ u_lon = u_geog[:,:,1]
 u_rad = u_geog[:,:,2]
 
 u_rad_positive = np.where(u_rad < 0, np.nan, u_rad)
-mean_rad_vels = np.nanmean(u_rad_positive) * 2
+# mean_rad_vels = np.nanmean(u_rad_positive) * 2
 # mean_temps = np.mean(temps, axis=1)
-mean_temps = np.nanpercentile(temps, 95)
+temps_bound = np.nanpercentile(temps, 95)
 
-mean_rad_vels = np.nanpercentile(u_rad_positive, 95)
+rad_vels_bound = np.nanpercentile(u_rad_positive, 95)
 
-print('percentile,', mean_temps)
-print('percentile,', mean_rad_vels)
 # rad_vel_mask = u_rad > (mean_rad_vels[:, None])
-rad_vel_mask = u_rad > (mean_rad_vels)
+rad_vel_mask = u_rad > (rad_vels_bound)
 
-temp_mask = temps > mean_temps #  (mean_temps[:, None])
+temp_mask = temps > temps_bound #  (mean_temps[:, None])
 
-# print(temps[1,:], mean_temps[1])
-
-# exit()
 u_lat_mag = np.sqrt(np.power(u_lat, 2) + np.power(u_lon, 2))
 
 # find where radial flow velocity is 
 # greater than lateral flow velocity
-flow_mag_diff = np.divide(u_rad, u_lat_mag)
+# flow_mag_diff = np.divide(u_rad, u_lat_mag)
 
-mag_diff_mask = flow_mag_diff > 1
+# mag_diff_mask = flow_mag_diff > 1
 
 # points_plumes = xyz_points[np.all([rad_vel_mask, temp_mask], axis = 0)]
 # points_plumes_geog = lat_lon_points[np.all([rad_vel_mask, temp_mask], axis = 0)]
@@ -82,8 +77,8 @@ points_plumes_geog = lat_lon_points[np.all([rad_vel_mask, temp_mask], axis = 0)]
 
 
 
-print('finding radii distribution of potential plume xyz points')
-radii_plume_points = radii[np.where(flow_mag_diff >= 1)[0]]
+# print('finding radii distribution of potential plume xyz points')
+# radii_plume_points = radii[np.where(flow_mag_diff >= 1)[0]]
 
 # plt.hist(radii_plume_points, bins=20)
 # plt.xlabel('Radii (km)')
@@ -91,7 +86,7 @@ radii_plume_points = radii[np.where(flow_mag_diff >= 1)[0]]
 # plt.show()
 # exit()
 
-print('percentage of points where radial flow > lateral flow velocity')
+print('percentage of points which are considered plumes')
 print((points_plumes.size / xyz_points.size) * 100, '%')
 
 print('clustering locations to find the number of plumes in the model')
