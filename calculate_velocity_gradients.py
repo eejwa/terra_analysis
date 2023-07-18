@@ -35,13 +35,14 @@ radii = 6371 - depths
 
 fields = ['vp', 'vs', 'density']
 
-vel_grad_bins = np.arange(0, 0.0101, 0.0001)
+vel_grad_bins = np.arange(0.000, 0.005, 0.0001)
 
-print(vel_grad_bins)
+print(vel_grad_bins.shape)
 
-grad_dist_rad = np.zeros((len(radii), vel_grad_bins.shape[0] -1))
+# grad_dist_rad = np.zeros((len(radii), vel_grad_bins.shape[0] -1))
 gradients_grid = np.zeros((len(radii), int(nlats), int(nlons)))
 
+grad_hist_depth = np.zeros((len(radii), int(vel_grad_bins.shape[0] -1 )))
 
 for i,depth in enumerate(depths):
     print(depth)
@@ -72,8 +73,13 @@ for i,depth in enumerate(depths):
     print(grad_mag.max())
     # print(grad_lat.shape)
     # print(grad_lon.shape)
-    # binned_grads, bin_edges = np.histogram(grad_mag.flatten(), vel_grad_bins)
+
+    binned_grads, bin_edges = np.histogram(grad_mag.flatten(), vel_grad_bins, density=False)
+    print(binned_grads)
+    print(bin_edges.shape)
+    
     gradients_grid[i] = grad_mag
+    grad_hist_depth[i] = binned_grads
 
     fig = plt.figure(figsize=(10,8))
     ax = fig.add_subplot(211, projection=ccrs.PlateCarree())
@@ -95,16 +101,32 @@ for i,depth in enumerate(depths):
 
 # grad_dist_rad = np.flip(grad_dist_rad, axis=0)
 # gradients_grid = np.flip(gradients_grid, axis=0)
+
 lower_mantle_grad = gradients_grid[:10,:,:].max()
+
+np.save('grad_hist_depth.npy', grad_hist_depth)
+np.save('grad_hist_depth_log10.npy', np.log10(grad_hist_depth))
+
+
 print('max gradient:', gradients_grid.max())
 print('max gradient lower mantle:', gradients_grid[:10,:,:].max())
 print('max gradient upper mantle:', gradients_grid[-10:,:,:].max())
+
+
+fig = plt.figure(figsize=(8,8))
+ax = fig.add_subplot(111)
+c = ax.contourf(bin_edges[:-1],radii,np.log10(grad_hist_depth), origin='lower', cmap='autumn_r', vmin=0, vmax=5)
+ax.set_xlabel('$V_{S}$ gradients (km/skm)')
+ax.set_ylabel('Radius (km)')
+plt.colorbar(c, ax=ax)
+# plt.show()
+plt.savefig('2d_hist_velgrad.pdf')
 # print('proportion of gradient in reasonable range:', gradients_grid[:10,:,:].max())
 
 
-with open('vel_grad_results_local.txt', 'w') as out:
-    out.write('model max_grad_lm \n')
-    out.write(f'{modelname}_{comp} {lower_mantle_grad} \n')
+# with open('vel_grad_results_local.txt', 'w') as out:
+#     out.write('model max_grad_lm \n')
+#     out.write(f'{modelname}_{comp} {lower_mantle_grad} \n')
 
 
 # plt.pcolormesh(grad_dist_rad, bin_edges, radii)
