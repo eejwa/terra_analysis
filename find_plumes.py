@@ -5,8 +5,10 @@ import numpy as np
 import matplotlib.pyplot as plt 
 from terratools import terra_model as tm
 from terratools import geographic as g
+from terratools import convert_files
 import matplotlib.pyplot as plt
 plt.style.use('seaborn')
+import glob 
 
 # clustering algorithms
 from sklearn.cluster import dbscan
@@ -15,7 +17,12 @@ EPSILON =  100 # km
 MINPTS = 5
 
 print('reading in model')
-m = tm.load_model_from_pickle('flow_temp_model.pkl')
+# m = tm.load_model_from_pickle('flow_temp_model.pkl')
+
+
+# convert_files.convert(glob.glob('nc*'))
+m = tm.read_netcdf(glob.glob('nc*'))
+
 lons_model, lats_model = m.get_lateral_points()
 radii = m.get_radii()
 
@@ -40,11 +47,15 @@ for i,rad in enumerate(radii):
     lat_lon_points[i] = lat_lon_rad_model
 
 print(xyz_points.shape)
+print(temps.shape)
+
 
 print('calculating lateral flow magnitude')
 u_lat = u_geog[:,:,0]
 u_lon = u_geog[:,:,1]
 u_rad = u_geog[:,:,2]
+
+print(u_rad.shape)
 
 u_rad_positive = np.where(u_rad < 0, np.nan, u_rad)
 mean_rad_vels = np.nanmean(u_rad_positive) * 2
@@ -76,6 +87,8 @@ mag_diff_mask = flow_mag_diff > 1
 
 points_plumes = xyz_points[np.all([rad_vel_mask, temp_mask], axis = 0)]
 points_plumes_geog = lat_lon_points[np.all([rad_vel_mask, temp_mask], axis = 0)]
+temps_plumes = temps[np.all([rad_vel_mask, temp_mask], axis = 0)]
+urs = u_rad[np.all([rad_vel_mask, temp_mask], axis = 0)]
 
 
 # points_plumes = xyz_points[temp_mask]
@@ -112,11 +125,13 @@ print(np.unique(labels, return_counts=True))
 indices_plume = np.where(labels >= 0)
 
 xyz_plume = points_plumes[indices_plume]
-xyz_plume_labels = np.c_[xyz_plume * 1000, labels[labels >= 0]]
+temps_plumes = temps_plumes[indices_plume]
+urs = urs[indices_plume]
+xyz_plume_labels = np.c_[xyz_plume * 1000, labels[labels >= 0], temps_plumes, urs]
 geog_plume = points_plumes_geog[indices_plume]
 
 # note will be in meters
-np.savetxt('xyz_plume_points_labels.txt', xyz_plume_labels, header='x y z label', comments='')
+np.savetxt('xyz_plume_points_labels.txt', xyz_plume_labels, header='x y z label temp u_r', comments='')
 np.savetxt('xyz_plume_points.txt', points_plumes*1000, header='x y z', comments='')
 
 # cluster_plume_radii = radii[np.where(flow_mag_diff >= 1)[0][indices_plume[0]]]
