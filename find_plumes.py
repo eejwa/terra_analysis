@@ -21,7 +21,7 @@ MINPTS = 5
 print('reading in model')
 # m = tm.load_model_from_pickle('flow_temp_model.pkl')
 m = tm.read_netcdf(glob.glob('nc*'))
-
+# m._surface_radius = 6371
 lons_model, lats_model = m.get_lateral_points()
 radii = m.get_radii()
 
@@ -123,10 +123,14 @@ temps_plumes = temps_plumes[indices_plume]
 urs = urs[indices_plume]
 xyz_plume_labels = np.c_[xyz_plume * 1000, labels[labels >= 0], temps_plumes, urs]
 geog_plume = points_plumes_geog[indices_plume]
-
+geog_plume_labels = np.c_[geog_plume, labels[labels >= 0], temps_plumes, urs]
 # note will be in meters
 np.savetxt('xyz_plume_points_labels.txt', xyz_plume_labels, header='x y z label temp u_r', comments='')
 np.savetxt('xyz_plume_points.txt', points_plumes*1000, header='x y z', comments='')
+
+np.savetxt('geog_plume_points_labels.txt', geog_plume_labels, header='lon lat rad label temp u_r', comments='')
+np.savetxt('geog_plume_points.txt', points_plumes_geog, header='lon lat rad', comments='')
+
 
 # cluster_plume_radii = radii[np.where(flow_mag_diff >= 1)[0][indices_plume[0]]]
 
