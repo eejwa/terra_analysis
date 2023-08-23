@@ -30,7 +30,7 @@ print('converting vectors')
 m.add_geog_flow()
 print('adding adiabat')
 m.add_adiabat()
-u_geog = m.get_field('u_geog') # lat, lon, rad
+u_geog = m.get_field('u_enu') # lat, lon, rad
 temps = m.get_field('t')
 
 # convert points into xyz
@@ -50,8 +50,8 @@ print(temps.shape)
 
 
 print('calculating lateral flow magnitude')
-u_lat = u_geog[:,:,0]
-u_lon = u_geog[:,:,1]
+u_lat = u_geog[:,:,1]
+u_lon = u_geog[:,:,0]
 u_rad = u_geog[:,:,2]
 
 print(u_rad.shape)
