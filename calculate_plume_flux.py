@@ -3,7 +3,7 @@
 
 import numpy as np 
 import matplotlib.pyplot as plt 
-from terratools import geographic as g
+from terratools import geographic as geog
 from scipy.spatial import ConvexHull
 from matplotlib.patches import Ellipse
 from sklearn.linear_model import LinearRegression
@@ -65,52 +65,84 @@ def minimum_bounding_ellipse(points):
 
 
 
-plume_points = np.loadtxt('xyz_plume_points_labels.txt', skiprows=0, comments='')
+plume_points = np.loadtxt('geog_plume_points_labels.txt', skiprows=1, comments=None)
 
 plume_number = plume_points[:,3]
-x = plume_points[:,0]
-y = plume_points[:,1]
-z = plume_points[:,2]
+lon = plume_points[:,0]
+lat = plume_points[:,1]
+rad = plume_points[:,2]
+temps = plume_points[:,4]
+urs = plume_points[:,5]
 
 
 rho_m = 3300
-alpha = 3e-5
+alpha = 2.5e-5
+g = 10
 
-
+results = []
 
 for pn in np.unique(plume_number):
     print(f'plume number: {pn}')
 
-    plume_index = plume_number == pn
+    plume_index = np.where(plume_number == pn)
 
-    x_plume = x[plume_index]
-    y_plume = y[plume_index]
-    z_plume = z[plume_index]
+    lon_plume = lon[plume_index]
+    lat_plume = lat[plume_index]
+    rad_plume = rad[plume_index]
+    temp_plume = temps[plume_index]
+    ur_plume = urs[plume_index]
 
-    lons, lats, rads = g.cart2geog(x_plume,y_plume,z_plume)
+    # lons, lats, rads = geog.cart2geog(x_plume,y_plume,z_plume)
 
-    for rad in rads:
+    plume_fluxes = np.zeros(len(np.unique(rad_plume)))
 
-        lons_rad = np.radians(lons[rads==rad])
-        lats_rad = np.radians(lats[rads==rad])
+    plume_results = np.stack([np.unique(rad_plume),plume_fluxes]).T
 
+
+    for i, r in enumerate(np.unique(rad_plume)):
+
+        lons_rad = np.radians(lon_plume[rad_plume==r])
+        lats_rad = np.radians(lat_plume[rad_plume==r])
+        temps_rad = temp_plume[rad_plume==r]
+        urs_rad = ur_plume[rad_plume==r]
+        
         points = np.stack([lats_rad, lons_rad]).T
+
+        x_points = np.copy(points)
+        y_points = np.copy(points)
 
         centre_lo = np.mean(lons_rad)
         centre_la = np.mean(lats_rad)
 
+        x_points[:,0] = centre_la
+        y_points[:,1] = centre_lo
 
-
-        distances = haversine_distances([[centre_la, centre_lo]], points) * rad
-
+        x_distances = haversine_distances([[centre_la, centre_lo]], x_points) * r
+        y_distances = haversine_distances([[centre_la, centre_lo]], y_points) * r
         
+        points_dist = np.stack([y_distances[0],x_distances[0]]).T
+        print(points_dist.shape)
 
-        A = ConvexHull(distances).volume
-        T = 3000 # TEMP
-        u_r = 5 # TEMP
+        if points_dist.shape[0] < 3:
+            Bp_rad = np.nan
+        else:
 
+            A = ConvexHull(points_dist).volume
+            T = np.mean(temps_rad)
+            u_r = np.mean(urs_rad)
 
+            # print(rho_m, alpha, T, A, u_r, g)
 
-        Bp_rad = rho_m * alpha * T * A * u_r
+            Bp_rad = rho_m * alpha * T * A * u_r * g
+
+        plume_results[i,1] = Bp_rad
+
+        print(rad, Bp_rad)
+
+    print(plume_results)
+
+    plt.plot(plume_results[:,1], plume_results[:,0], 'o-')
+    plt.ylim([3480, 6370])
+    plt.show()
 
 
