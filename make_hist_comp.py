@@ -37,7 +37,8 @@ bins = np.arange(0,1,0.01)
 for j,c_name in enumerate(c_names):
     t_hist_depth = np.zeros((len(radii), int(bins.shape[0] -1 )))
     total_c_depth = np.zeros((len(radii), 3))
-    c_name = c_name.lower()
+    print(c_name)
+    c_name = c_names[c_name]['name'].lower()
 
     for i,depth in enumerate(depths):
         c_rad = c_hist[i,:,j]
@@ -69,6 +70,7 @@ for j,c_name in enumerate(c_names):
     np.save(f'{c_name}_hist_um_log10.npy', np.log10(um_hist))
 
 
+
     fig = plt.figure(figsize=(8,8))
     ax = fig.add_subplot(111)
     c = ax.contourf(bin_edges[:-1],radii,np.log10(t_hist_depth), origin='lower', cmap='autumn_r', vmin=0, vmax=5, bins=20)
@@ -87,5 +89,8 @@ for j,c_name in enumerate(c_names):
 
     ax.set_xlabel(f'{c_name} total fraction')
     ax.set_ylabel('Radius (km)')
+    plt.savefig(f'2d_hist_{c_name}.pdf')
     plt.show()
-    # plt.savefig(f'2d_hist_{c_name}.pdf')
+
+
+    np.save(f'{c_name}_depth_distribution.npy', total_c_depth)
