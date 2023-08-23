@@ -62,5 +62,5 @@ c = ax.contourf(bin_edges[:-1],radii,np.log10(t_hist_depth), origin='lower', cma
 ax.set_xlabel('Temp (K)')
 ax.set_ylabel('Radius (km)')
 plt.colorbar(c, ax=ax)
-plt.show()
 plt.savefig('2d_hist_temp.pdf')
+plt.show()
