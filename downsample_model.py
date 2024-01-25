@@ -28,11 +28,20 @@ tess_4 = np.loadtxt(tess_4_path)
 
 points_tess_4 = tess_4[:2562,:]
 
-print(points_tess_4)
 
-x = points_tess_4[:,1]
-y = points_tess_4[:,2]
-z = points_tess_4[:,3]
+tess_3_path = '/Users/earjwara/work/tess_3.txt'
+tess_3 = np.loadtxt(tess_3_path)
+
+points_tess_3 = tess_3[:642,:]
+
+
+
+
+
+
+x = points_tess_3[:,1]
+y = points_tess_3[:,2]
+z = points_tess_3[:,3]
 
 lons_down, lats_down, rs = g.cart2geog(x,y,z)
 
@@ -63,7 +72,7 @@ c_down = c_hist[:,locs]
 
 nps = len(points_down)
 nlayers = len(radii_model)
-compositions = 3
+compositions = 2
 
 
 ncfile = Dataset('./new.nc',mode='w',format='NETCDF4_CLASSIC')
@@ -120,7 +129,7 @@ var_comp_fracs = ncfile.createVariable(
 
 var_comp_fracs[0,:,:] = c_down[:,:,0]
 var_comp_fracs[1,:,:] = c_down[:,:,1]
-var_comp_fracs[2,:,:] = c_down[:,:,2]
+# var_comp_fracs[2,:,:] = c_down[:,:,2]
 
 var_comp_fracs.composition_1_name = "Harzburgite"
 var_comp_fracs.composition_1_c = 0
@@ -135,4 +144,4 @@ ncfile.version = 1
 ncfile.close()
 
 
-m2 = tm.read_netcdf(glob.glob('new.nc'))
+m2 = tm.read_netcdf(glob.glob('downsampled_model.nc'))
