@@ -12,8 +12,19 @@ plt.style.use('seaborn')
 
 
 
-m = tm.load_model_from_pickle('flow_temp_model.pkl')
-# m = tm.read_netcdf(glob.glob('nc*'))
+# m = tm.load_model_from_pickle('flow_temp_model.pkl')
+
+try:
+    m = tm.read_netcdf(glob.glob('nc*'))
+except:
+    print(glob.glob('nc*'))
+    convert_files.convert(glob.glob('./nc*'))
+    m = tm.read_netcdf(glob.glob('nc*'))
+# else:
+#     print('files messed up leaving')
+#     exit()
+    
+
 m._surface_radius = 6371
 lons_model, lats_model = m.get_lateral_points()
 radii = m.get_radii()
@@ -29,7 +40,7 @@ lower_mantle_mask = np.where(depths >= 680)
 upper_mantle_mask = np.where(depths <= 680)
 
 
-bins = np.arange(0,4050,50)
+bins = np.arange(0,4550,50)
 
 t_hist_depth = np.zeros((len(radii), int(bins.shape[0] -1 )))
 
@@ -63,4 +74,4 @@ ax.set_xlabel('Temp (K)')
 ax.set_ylabel('Radius (km)')
 plt.colorbar(c, ax=ax)
 plt.savefig('2d_hist_temp.pdf')
-plt.show()
+# # plt.show()
