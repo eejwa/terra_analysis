@@ -12,8 +12,19 @@ plt.style.use('seaborn')
 
 
 
-m = tm.load_model_from_pickle('flow_temp_model.pkl')
-# m = tm.read_netcdf(glob.glob('nc*'))
+# m = tm.load_model_from_pickle('flow_temp_model.pkl')
+
+
+
+try:
+    m = tm.read_netcdf(glob.glob('nc*'))
+except:
+    convert_files.convert(glob.glob('./nc*'))
+    m = tm.read_netcdf(glob.glob('nc*'))
+# else:
+#     print('files messed up leaving')
+#     exit()
+
 m._surface_radius = 6371
 lons_model, lats_model = m.get_lateral_points()
 radii = m.get_radii()
@@ -38,7 +49,8 @@ for j,c_name in enumerate(c_names):
     t_hist_depth = np.zeros((len(radii), int(bins.shape[0] -1 )))
     total_c_depth = np.zeros((len(radii), 3))
     print(c_name)
-    c_name = c_names[c_name]['name'].lower()
+    c_name = c_name.lower()
+    # c_name = c_names[c_name]['name'].lower()
 
     for i,depth in enumerate(depths):
         c_rad = c_hist[i,:,j]
@@ -60,6 +72,10 @@ for j,c_name in enumerate(c_names):
     lm_hist = t_hist_depth[lower_mantle_mask]
     um_hist = t_hist_depth[upper_mantle_mask]
 
+    lm_total_depth = total_c_depth[lower_mantle_mask]
+    um_total_depth = total_c_depth[upper_mantle_mask]
+
+
     # np.save('grad_hist_depth.npy', grad_hist_depth)
     # np.save('grad_hist_depth_log10.npy', np.log10(grad_hist_depth))
 
@@ -77,7 +93,7 @@ for j,c_name in enumerate(c_names):
     ax.set_xlabel(f'{c_name} fraction')
     ax.set_ylabel('Radius (km)')
     plt.colorbar(c, ax=ax)
-    plt.show()
+    # plt.show()
     plt.savefig(f'2d_hist_{c_name}.pdf')
 
 
@@ -90,7 +106,9 @@ for j,c_name in enumerate(c_names):
     ax.set_xlabel(f'{c_name} total fraction')
     ax.set_ylabel('Radius (km)')
     plt.savefig(f'2d_hist_{c_name}.pdf')
-    plt.show()
+    # plt.show()
 
 
     np.save(f'{c_name}_depth_distribution.npy', total_c_depth)
+    np.save(f'{c_name}_depth_distribution_um.npy', um_total_depth)
+    np.save(f'{c_name}_depth_distribution_lm.npy', lm_total_depth)
